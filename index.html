@@ -101,7 +101,7 @@
     <div class="result" id="result">請輸入數值進行計算</div>
 
     <details>
-      <summary>📘 查看計算公式與教學說明</summary>
+      <summary> 查看計算公式與教學說明</summary>
       <p>使用時間公式：<br><b>容量 (Wh) × 0.8 ÷ 功率 (W)</b></p>
       <p>為何乘 0.8？以預留逆變損耗與安全餘裕，做保守估算。</p>
       <p>如何從電器標示換算功率 (W)：<br><b>電壓 (V) × 電流 (A) = 功率 (W)</b></p>
@@ -139,13 +139,13 @@
       const w = parseFloat(powerInput.value);
 
       if (isNaN(wh) || isNaN(w) || w <= 0) {
-        resultDiv.innerHTML = '⚠️ 請輸入正確數值';
+        resultDiv.innerHTML = ' 請輸入正確數值';
         return;
       }
       const hours = (wh * 0.8) / w;
       const hr = Math.floor(hours);
       const min = Math.round((hours - hr) * 60);
-      resultDiv.innerHTML = `🔋 預估可使用時間：約 ${hr} 小時 ${String(min).padStart(2,'0')} 分`;
+      resultDiv.innerHTML = ` 預估可使用時間：約 ${hr} 小時 ${String(min).padStart(2,'0')} 分`;
     }
 
     function resetForm() {
@@ -160,4 +160,16 @@
     syncCapacity();
   </script>
 </body>
+  <script>
+function sendHeight() {
+  const h = Math.max(
+    document.body.scrollHeight,
+    document.documentElement.scrollHeight
+  );
+  parent.postMessage({ type: 'embedHeight', height: h }, '*');
+}
+window.addEventListener('load', sendHeight);
+window.addEventListener('resize', sendHeight);
+new MutationObserver(sendHeight).observe(document.body, { childList: true, subtree: true });
+</script>
 </html>
