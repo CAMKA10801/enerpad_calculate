@@ -159,16 +159,4 @@
     syncCapacity();
   </script>
 </body>
-  <script>
-function sendHeight() {
-  const h = Math.max(
-    document.body.scrollHeight,
-    document.documentElement.scrollHeight
-  );
-  parent.postMessage({ type: 'embedHeight', height: h }, '*');
-}
-window.addEventListener('load', sendHeight);
-window.addEventListener('resize', sendHeight);
-new MutationObserver(sendHeight).observe(document.body, { childList: true, subtree: true });
-</script>
 </html>
