@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enerpad AC 行動電源使用時間試算</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: #1c5779;
+      padding: 22px;
+      border-radius: 14px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.55);
+    }
+    h2 {
+      text-align: center;
+      margin: 0 0 14px;
+      color: #ffffff;
+      font-size: 20px;
+      line-height: 1.4;
+    }
+    label { display:block; margin: 10px 0 6px; }
+    select {
+      width: 420px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: #2a2a2a;
+      color: #fff;
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+   input[type="number"], input[readonly] {
+      width: 400px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: #2a2a2a;
+      color: #fff;
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .calculate { background-color: #4d94bc; color: white; }
+    .reset { background-color: #f44336; color: white; }
+    .result {
+      margin-top: 12px; padding: 12px; border-radius: 8px;
+      background: #2a2a2a; font-weight: 600; text-align: center;
+    }
+    details { margin-top: 12px; background: #2a2a2a; padding: 12px; border-radius: 8px; }
+    summary { cursor: pointer; font-weight: 700; }
+    summary:hover { color: #4d94bc; }
+    .hint { font-size: 12px; color: #bdbdbd; margin-top: -6px; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Enerpad AC 行動電源<br>使用時間試算</h2>
+
+    <label for="model">選擇型號：</label>
+    <select id="model">
+      <option value="AC27KD">AC-27KD（約 91.6 Wh）</option>
+      <option value="AC40K">AC-40K（約 144.7 Wh）</option>
+      <option value="MD42K">MD-42K（約 149.0 Wh）</option>
+      <option value="UPS55K">UPS-55K（約 198.7 Wh）</option>
+      <option value="MD80K">MD-80K（約 296.0 Wh）</option>
+      <option value="AC160K">AC-160K（約 592.0 Wh）</option>
+    </select>
+
+    <label for="capacity">容量（Wh）</label>
+    <input id="capacity" type="number" readonly>
+    <div class="hint">由型號自動帶入。</div>
+
+    <label for="power">輸入預計使用的電器功率 (W)</label>
+    <input type="number" id="power" placeholder="例如 65">
+
+    <button class="calculate" onclick="calculate()">計算</button>
+    <button class="reset" onclick="resetForm()">重設</button>
+
+    <div class="result" id="result">請輸入數值進行計算</div>
+
+    <details>
+      <summary>📘 查看計算公式與教學說明</summary>
+      <p>使用時間公式：<br><b>容量 (Wh) × 0.8 ÷ 功率 (W)</b></p>
+      <p>為何乘 0.8？以預留逆變損耗與安全餘裕，做保守估算。</p>
+      <p>如何從電器標示換算功率 (W)：<br><b>電壓 (V) × 電流 (A) = 功率 (W)</b></p>
+      <ul>
+        <li>例 1：20V × 3.25A = 65W（常見筆電充電器）</li>
+        <li>例 2：12V × 1.5A ≈ 18W（路由器／小家電）</li>
+      </ul>
+      <p class="hint">若只看到 mA，請先換算為 A（如 500mA = 0.5A）。</p>
+    </details>
+  </div>
+
+  <script>
+    // 正確型號對應容量（Wh）
+    const CAP = {
+      AC27KD: 91.6,
+      AC40K: 144.7,
+      MD42K: 149.0,
+      UPS55K: 198.7,
+      MD80K: 296.0,
+      AC160K: 592.0
+    };
+
+    const modelSel = document.getElementById('model');
+    const capacityInput = document.getElementById('capacity');
+    const powerInput = document.getElementById('power');
+    const resultDiv = document.getElementById('result');
+
+    function syncCapacity(){
+      const id = modelSel.value;
+      capacityInput.value = CAP[id].toFixed(1);
+    }
+
+    function calculate() {
+      const wh = parseFloat(capacityInput.value);
+      const w = parseFloat(powerInput.value);
+
+      if (isNaN(wh) || isNaN(w) || w <= 0) {
+        resultDiv.innerHTML = '⚠️ 請輸入正確數值';
+        return;
+      }
+      const hours = (wh * 0.8) / w;
+      const hr = Math.floor(hours);
+      const min = Math.round((hours - hr) * 60);
+      resultDiv.innerHTML = `🔋 預估可使用時間：約 ${hr} 小時 ${String(min).padStart(2,'0')} 分`;
+    }
+
+    function resetForm() {
+      modelSel.selectedIndex = 0;
+      syncCapacity();
+      powerInput.value = '';
+      resultDiv.innerHTML = '請輸入數值進行計算';
+    }
+
+    // 初始化
+    modelSel.addEventListener('change', syncCapacity);
+    syncCapacity();
+  </script>
+</body>
+</html>
