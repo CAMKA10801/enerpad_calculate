@@ -2,75 +2,85 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0f19">
   <title>Enerpad AC 行動電源使用時間試算</title>
   <style>
+    :root{
+      --bg:#0b0f19;         /* 背景 */
+      --card:#121829;       /* 卡片底色 */
+      --muted:#9aa4b2;      /* 次要文字 */
+      --accent:#3d8bff;     /* 重點藍 */
+      --accent-hover:#2f78e6;
+      --field:#1a2238;      /* 輸入底色 */
+      --stroke:#1f2a44;     /* 邊框色 */
+      --warn:#ff5c5c;       /* 警示紅 */
+      --text:#e6edf7;       /* 主文字 */
+      --highlight:#ffcc00;  /* 強調黃 */
+    }
+
+    /* 自動依裝置最佳化：排版、字級、間距 */
+    html { -webkit-text-size-adjust: 100%; }
     body {
-      font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: #e0e0e0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
+      font-family: Arial, system-ui, -apple-system, "Noto Sans TC", sans-serif;
+      background-color: var(--bg); color: var(--text);
+      display: flex; justify-content: center; align-items: center;
+      min-height: 100vh; margin: 0;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     }
     .container {
-      background: #1c5779;
-      padding: 22px;
-      border-radius: 14px;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.55);
+      background: var(--card);
+      padding: 24px; border-radius: 16px; width: 100%;
+      max-width: clamp(340px, 92vw, 520px);
+      box-shadow: 0 6px 24px rgba(0,0,0,.55);
+      border: 1px solid var(--stroke);
+      box-sizing: border-box;
     }
-    h2 {
-      text-align: center;
-      margin: 0 0 14px;
-      color: #ffffff;
-      font-size: 20px;
-      line-height: 1.4;
+
+    h2 { text-align:center; margin:0 0 16px; color: var(--accent); font-size: clamp(20px, 2.6vw, 24px); line-height:1.35; }
+    label { display:block; margin: 10px 0 6px; font-size: 14px; }
+    select, input[type="number"], input[readonly]{
+      width:100%; padding:12px; border-radius:12px; border:1px solid var(--stroke);
+      background: var(--field); color: var(--text); margin-bottom:10px; font-size:16px; /* 16px 避免 iOS 放大 */
+      outline: none; box-sizing: border-box;
     }
-    label { display:block; margin: 10px 0 6px; }
-    select {
-      width: 420px;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      background: #2a2a2a;
-      color: #fff;
-      margin-bottom: 10px;
-      font-size: 15px;
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .actions { display:flex; flex-direction: column; gap:10px; margin-top:8px; }
+    @media (min-width: 480px){ .actions{ flex-direction: row; } }
+
+    button{ flex:1; padding:12px; border:none; border-radius:12px; cursor:pointer; font-size:16px; box-sizing: border-box; }
+    .calculate{ background: var(--accent); color:#fff; font-weight:700 }
+    .calculate:hover{ background: var(--accent-hover) }
+    .reset{ background:#0f1729; color:#e6edf7; border:1px solid var(--stroke) }
+    .reset:hover{ background:#0d1422 }
+
+    .result{ margin-top:14px; padding:14px; border-radius:12px; background: var(--field); text-align:center; border:1px solid var(--stroke); box-sizing: border-box; }
+    .result strong{ color: var(--accent) }
+    .highlight{ font-weight:700; color: var(--highlight) }
+
+    details{ margin-top:14px; background: var(--field); padding:12px; border-radius:12px; border:1px solid var(--stroke); box-sizing: border-box; }
+    summary{ cursor:pointer; font-weight:700; color: var(--accent); display:flex; align-items:center; }
+    summary::before { content: '＋'; margin-right:6px; transition: transform 0.2s; }
+    details[open] summary::before { content: '－'; }
+    summary:hover{ color: var(--accent-hover) }
+
+    .hint{ font-size:12px; color: var(--muted); margin-top:-6px; margin-bottom:6px }
+    .limit{ display:none; margin-top:6px; padding:10px; background: rgba(255,92,92,.12); color:#ffd5d5; border:1px solid rgba(255,92,92,.45); border-radius:12px; font-weight:700; text-align:center; box-sizing: border-box; }
+    .section-title{ font-weight:bold; color: var(--accent); margin-top:10px; }
+    .accordion{ margin-left:0 }
+    .panel{ overflow: hidden; max-height: 0; transition: max-height 280ms ease; }
+
+    /* 更寬的裝置（平板/桌機）最佳化：增加容器寬度與字距 */
+    @media (min-width: 640px){ .container{ max-width: 640px; } }
+    @media (min-width: 960px){ .container{ max-width: 720px; } }
+
+    /* 減少動畫以符合無障礙偏好 */
+    @media (prefers-reduced-motion: reduce){
+      * { transition: none !important; animation: none !important; }
     }
-   input[type="number"], input[readonly] {
-      width: 400px;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      background: #2a2a2a;
-      color: #fff;
-      margin-bottom: 10px;
-      font-size: 15px;
-    }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 8px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    .calculate { background-color: #4d94bc; color: white; }
-    .reset { background-color: #f44336; color: white; }
-    .result {
-      margin-top: 12px; padding: 12px; border-radius: 8px;
-      background: #2a2a2a; font-weight: 600; text-align: center;
-    }
-    details { margin-top: 12px; background: #2a2a2a; padding: 12px; border-radius: 8px; }
-    summary { cursor: pointer; font-weight: 700; }
-    summary:hover { color: #4d94bc; }
-    .hint { font-size: 12px; color: #bdbdbd; margin-top: -6px; margin-bottom: 6px; }
   </style>
 </head>
 <body>
@@ -79,12 +89,12 @@
 
     <label for="model">選擇型號：</label>
     <select id="model">
-      <option value="AC27KD">AC-27KD（約 91.6 Wh）</option>
-      <option value="AC40K">AC-40K（約 144.7 Wh）</option>
-      <option value="MD42K">MD-42K（約 149.0 Wh）</option>
-      <option value="UPS55K">UPS-55K（約 198.7 Wh）</option>
-      <option value="MD80K">MD-80K（約 298.0 Wh）</option>
-      <option value="AC160K">AC-160K（約 576.0 Wh）</option>
+      <option value="AC27KD">AC-27KD（約 91.6 Wh，連續使用負載100W）</option>
+      <option value="AC40K">AC-40K（約 144.7 Wh，連續使用負載100W）</option>
+      <option value="MD42K">MD-42K（約 149.0 Wh，連續使用負載200W）</option>
+      <option value="UPS55K">UPS-55K（約 198.7 Wh，連續使用負載200W，具不斷電設計）</option>
+      <option value="MD80K">MD-80K（約 298.0 Wh，連續使用負載200W）</option>
+      <option value="AC160K">AC-160K（約 576.0 Wh，連續使用負載200W）</option>
     </select>
 
     <label for="capacity">容量（Wh）</label>
@@ -92,70 +102,173 @@
     <div class="hint">由型號自動帶入。</div>
 
     <label for="power">輸入預計使用的電器功率 (W)</label>
-    <input type="number" id="power" placeholder="例如 65">
+    <input type="number" id="power" placeholder="例如 65" inputmode="decimal" step="0.1">
 
-    <button class="calculate" onclick="calculate()">計算</button>
-    <button class="reset" onclick="resetForm()">重設</button>
+    <div id="limit" class="limit" aria-live="polite" role="alert">⚠️ 超過連續使用負載</div>
 
-    <div class="result" id="result">請輸入數值並點擊計算</div>
+    <div class="actions">
+      <button class="calculate" onclick="calculate()">請輸入數值並點擊計算</button>
+      <button class="reset" onclick="resetForm()">重設</button>
+    </div>
 
-    <details>
-      <summary> 查看功率計算公式與說明</summary>
-      <p>使用時間公式：<br><b>容量 (Wh) × 0.8 ÷ 功率 (W)</b></p>
-      <p>為何乘 0.8？以預留逆變損耗與安全餘裕，做保守估算。</p>
-      <p>如何從電器標示換算功率 (W)：<br><b>電壓 (V) × 電流 (A) = 功率 (W)</b></p>
-      <ul>
-        <li>例 1：20V × 3.25A = 65W（常見筆電充電器）</li>
-        <li>例 2：12V × 1.5A ≈ 18W（路由器／小家電）</li>
-      </ul>
-      <p class="hint">若只看到 mA，請先換算為 A（如 500mA = 0.5A）。</p>
+    <div class="result" id="result" aria-live="polite">請輸入數值進行計算</div>
+
+    <p id='globalWarn' style='display:none; background:rgba(255,92,92,.15); color:#ff8080; padding:10px; border-radius:12px; border:1px solid rgba(255,92,92,.4); font-weight:700; text-align:center;'>⚠️ 注意：此類高功率電器不適合搭配 Enerpad AC 行動電源。</p>
+
+    <details class="accordion" id="mainGuide">
+      <summary>📘 查看功率計算公式與說明</summary>
+      <div class="panel">
+        <p class="section-title">計算公式：</p>
+        <p><b>容量 (Wh) × 0.8 ÷ 功率 (W)</b></p>
+        <p>為何乘 0.8？以預留逆變損耗與安全餘裕，做保守估算。</p>
+
+        <p class="section-title">如何換算功率 (W)：</p>
+        <p><b>電壓 (V) × 電流 (A) = 功率 (W)</b></p>
+        <ul>
+          <li>例 1：20V × 3.25A = 65W（常見筆電充電器）</li>
+          <li>例 2：12V × 1.5A ≈ 18W（路由器／小家電）</li>
+          <li>例 3：部分電熱商品無標示瞬間最高功率，可用功率表做精準測試</li>
+          <li>例 4：筆電通常標示效能全開時的最高功率，但一般使用時功率較低</li>
+        </ul>
+
+        <p class="section-title">常見電器功率範例：</p>
+        <details class="accordion">
+          <summary>常見電器功率</summary>
+          <div class="panel">
+            <ul>
+              <li>LED 燈泡：5W ~ 15W</li>
+              <li>小冰箱（行動冰箱）：50W ~ 100W</li>
+              <li>筆記型電腦：45W ~ 250W（依型號差異）</li>
+              <li>電視機（32~50吋）：60W ~ 150W</li>
+              <li>DC直流電扇：5W ~ 25W（較傳統電扇省電）</li>
+            </ul>
+          </div>
+        </details>
+
+        <p class="section-title">注意事項：</p>
+        <p>「連續使用負載」指的是行動電源可以長時間穩定輸出的最大功率。<br>有些電器會在啟動瞬間產生短暫峰值功率，可能高於連續使用負載，但時間極短，不等同於可長時間承載。</p>
+
+        <p class="section-title">高功率家電範例：</p>
+        <details class="accordion">
+          <summary>高功率家電</summary>
+          <div class="panel">
+            <ul>
+              <li>吹風機：1000W ~ 1800W</li>
+              <li>微波爐：800W ~ 1500W</li>
+              <li>電磁爐：1200W ~ 2000W</li>
+              <li>電熱水壺：1000W ~ 1500W</li>
+            </ul>
+            <p style='background:rgba(255,92,92,.15); color:#ff8080; padding:10px; border-radius:12px; border:1px solid rgba(255,92,92,.4); font-weight:700;'>⚠️ 注意：此類高功率電器不適合搭配 Enerpad AC 行動電源。</p>
+          </div>
+        </details>
+
+        <p class="hint">若只看到 mA，請先換算為 A（如 500mA = 0.5A）。</p>
+      </div>
     </details>
   </div>
 
   <script>
-    // 正確型號對應容量（Wh）
-    const CAP = {
-      AC27KD: 91.6,
-      AC40K: 144.7,
-      MD42K: 149.0,
-      UPS55K: 198.7,
-      MD80K: 298.0,
-      AC160K: 576.0
-    };
+    const CAP = { AC27KD: 91.6, AC40K: 144.7, MD42K: 149.0, UPS55K: 198.7, MD80K: 298.0, AC160K: 576.0 };
+    const MAXW = { AC27KD: 100, AC40K: 100, MD42K: 200, UPS55K: 200, MD80K: 200, AC160K: 200 };
 
     const modelSel = document.getElementById('model');
     const capacityInput = document.getElementById('capacity');
     const powerInput = document.getElementById('power');
     const resultDiv = document.getElementById('result');
+    const limitDiv = document.getElementById('limit');
+    const globalWarn = document.getElementById('globalWarn');
 
     function syncCapacity(){
       const id = modelSel.value;
       capacityInput.value = CAP[id].toFixed(1);
+      checkLimit();
+    }
+
+    function checkLimit(){
+      const id = modelSel.value;
+      const w = parseFloat(powerInput.value);
+      const max = MAXW[id];
+      let over = !isNaN(w) && w > max;
+      let msg = '';
+
+      // 高功率全域警示：>200W 顯示
+      if (!isNaN(w)) {
+        globalWarn.style.display = w > 200 ? 'block' : 'none';
+      } else {
+        globalWarn.style.display = 'none';
+      }
+
+      if (!isNaN(w)) {
+        if ((id === 'AC27KD' || id === 'AC40K') && w > 100 && w <= 200) {
+          over = true;
+          msg = ` 超過連續使用負載 (<span class="highlight">本型號連續使用負載 ${max}W</span>)。建議選擇 MD-42K 以上型號。`;
+        } else if (w > max) {
+          msg = ` 超過連續使用負載 (<span class="highlight">本型號連續使用負載 ${max}W</span>)`;
+        }
+      }
+
+      limitDiv.style.display = over ? 'block' : 'none';
+      if (over) {
+        limitDiv.innerHTML = msg;
+        resultDiv.innerHTML = msg;
+      }
+      return over;
     }
 
     function calculate() {
       const wh = parseFloat(capacityInput.value);
       const w = parseFloat(powerInput.value);
 
+      if (isNaN(w)) {
+        alert(' 請輸入數字！');
+        return;
+      }
+
+      // 同步高功率全域警示
+      globalWarn.style.display = !isNaN(w) && w > 200 ? 'block' : 'none';
+
       if (isNaN(wh) || isNaN(w) || w <= 0) {
         resultDiv.innerHTML = ' 請輸入正確數值';
         return;
       }
+      if (checkLimit()) return;
       const hours = (wh * 0.8) / w;
       const hr = Math.floor(hours);
       const min = Math.round((hours - hr) * 60);
-      resultDiv.innerHTML = ` 預估可使用時間：約 ${hr} 小時 ${String(min).padStart(2,'0')} 分`;
+      resultDiv.innerHTML = ` 預估可使用時間：<strong>${hr} 小時 ${String(min).padStart(2,'0')} 分</strong><br><span class="highlight">本型號連續使用負載：${MAXW[modelSel.value]}W</span>`;
     }
 
     function resetForm() {
-      modelSel.selectedIndex = 0;
-      syncCapacity();
-      powerInput.value = '';
-      resultDiv.innerHTML = '請輸入數值並點擊計算';
+      modelSel.selectedIndex = 0; syncCapacity();
+      powerInput.value = ''; limitDiv.style.display='none';
+      resultDiv.innerHTML = '請輸入數值進行計算';
+      globalWarn.style.display = 'none';
     }
 
-    // 初始化
+    // Accordion 滑動動畫：依內容動態高度過渡
+    function setupAccordion(){
+      const accordions = document.querySelectorAll('details.accordion');
+      accordions.forEach(dtl => {
+        const panel = dtl.querySelector('.panel');
+        if (!panel) return;
+        const animate = () => {
+          if (dtl.open) {
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+          } else {
+            panel.style.maxHeight = 0;
+          }
+        };
+        // 初始狀態與切換
+        animate();
+        dtl.addEventListener('toggle', animate);
+        // 視窗尺寸改變時更新
+        window.addEventListener('resize', () => { if (dtl.open) panel.style.maxHeight = panel.scrollHeight + 'px'; });
+      });
+    }
+
     modelSel.addEventListener('change', syncCapacity);
+    powerInput.addEventListener('input', checkLimit);
+    setupAccordion();
     syncCapacity();
   </script>
 </body>
