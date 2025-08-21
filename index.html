@@ -201,9 +201,9 @@
       if (!isNaN(w)) {
         if ((id === 'AC27KD' || id === 'AC40K') && w > 100 && w <= 200) {
           over = true;
-          msg = ` 超過連續使用負載 (<span class="highlight">本型號連續使用負載 ${max}W</span>)。建議選擇 MD-42K 以上型號。`;
+          msg = `⚠️ 超過連續使用負載 (<span class="highlight">本型號連續使用負載 ${max}W</span>)。建議選擇 MD-42K 以上型號。`;
         } else if (w > max) {
-          msg = ` 超過連續使用負載 (<span class="highlight">本型號連續使用負載 ${max}W</span>)`;
+          msg = `⚠️ 超過連續使用負載 (<span class="highlight">本型號連續使用負載 ${max}W</span>)`;
         }
       }
 
